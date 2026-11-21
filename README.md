@@ -240,7 +240,7 @@ Open the local frontend URL displayed by Vite in your browser.
 
 B.Tech – Computer Science & Engineering
 
-GitHub: [@Priyanshu-Gurjar20](https://github.com/Priy ansh-Gurjar20)
+GitHub: [@Priyanshu-Gurjar20](https://github.com/Priyanshu-Gurjar20)
 
 ---
 
