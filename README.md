@@ -91,6 +91,22 @@ A collection of AI-powered tools designed to improve resume quality.
 
 ---
 
+## 📸 Application Screenshots
+
+### 🏠 Home Page
+![ResuMind Home Page](screenshots/home.png)
+
+### 🤖 AI Tools
+![ResuMind AI Tools](screenshots/ai-tools.png)
+
+### 📊 ATS Checker
+![ResuMind ATS Checker](screenshots/ats-checker.png)
+
+### 💻 Dashboard
+![ResuMind Dashboard](screenshots/dashboard.png)
+
+---
+
 ## System Architecture
 
 ```text
