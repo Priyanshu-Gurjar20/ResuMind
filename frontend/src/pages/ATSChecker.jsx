@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import API from "../api/api";
 import {
     AlertCircle,
     ArrowRight,
@@ -20,7 +21,7 @@ import {
     Zap,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar"; 
+import Navbar from "../components/Navbar";
 
 const STOP_WORDS = new Set([
     "the", "and", "for", "with", "that", "this", "from", "your", "you", "are", "our", "have", "has", "will", "into", "using", "use", "to", "of", "in", "on", "a", "an", "is", "as", "be", "or", "at", "by", "it", "was", "were", "their", "they", "can", "not", "but", "we", "i", "my", "me", "about", "than", "then", "also", "more", "such", "all", "any", "job", "role", "work", "working"
@@ -40,13 +41,81 @@ function ATSChecker() {
     const [dragging, setDragging] = useState(false);
     const [scanned, setScanned] = useState(false);
     const [showDetails, setShowDetails] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [uploadError, setUploadError] = useState("");
+    const [aiAnalysis, setAiAnalysis] = useState(null);
 
     const localAudit = useMemo(() => analyzeText(resumeText, jobDescription), [resumeText, jobDescription]);
 
+    const aiAudit = useMemo(() => {
+        if (!aiAnalysis) return null;
+
+        const score = Math.max(
+            0,
+            Math.min(100, Number(aiAnalysis.atsScore) || 0)
+        );
+
+        const checks = [
+            {
+                title: "Overall ATS assessment",
+                max: 100,
+                points: score,
+                status: score >= 80 ? "good" : score >= 55 ? "warn" : "bad",
+                detail: aiAnalysis.summary || "Gemini ATS assessment completed."
+            }
+        ];
+
+        const issues = [
+            ...(aiAnalysis.weaknesses || []).map((item, index) => ({
+                title: typeof item === "string"
+                    ? item.length > 55
+                        ? `${item.slice(0, 52)}...`
+                        : item
+                    : item.title || `Resume issue ${index + 1}`,
+                detail: typeof item === "string"
+                    ? item
+                    : item.detail,
+                fix: "Review this issue and improve it using accurate resume information."
+            })),
+            ...(aiAnalysis.suggestions || []).map((item) => ({
+                title: "AI suggestion",
+                detail: item,
+                fix: "Apply this suggestion only when factually accurate."
+            }))
+        ];
+
+        const jd = {
+            enabled: Boolean(jobDescription.trim()),
+            detected: [],
+            missing: aiAnalysis.missingKeywords || [],
+            total: (aiAnalysis.missingKeywords || []).length
+        };
+
+        return {
+            score,
+            label: score >= 85 ? "Strong compatibility" :
+                score >= 70 ? "Good, with improvements" :
+                    score >= 55 ? "Needs improvement" :
+                        "High-risk for ATS parsing",
+            checks,
+            passed: score >= 80 ? 1 : 0,
+            issues,
+            strengths: (aiAnalysis.strengths || []).map((item) => ({
+                title: "AI identified strength",
+                detail: item
+            })),
+            jd
+        };
+    }, [aiAnalysis, jobDescription]);
+
     const handleFile = (nextFile) => {
         if (!nextFile) return;
-        const allowed = ["application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "application/msword", "text/plain"];
-        const isText = nextFile.type.startsWith("text/") || /\.(txt|md)$/i.test(nextFile.name); 
+        const allowed = [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain"
+        ];
+        const isText = nextFile.type.startsWith("text/") || /\.(txt|md)$/i.test(nextFile.name);
         if (!allowed.includes(nextFile.type) && !isText) return;
         setFile(nextFile);
         setScanned(false);
@@ -66,13 +135,51 @@ function ATSChecker() {
         if (inputRef.current) inputRef.current.value = "";
     };
 
-    const runAudit = () => {
-        if (!file && !resumeText.trim()) return;
-        setScanned(true);
+    const runAudit = async () => {
+        if (!file) return;
+
+        setIsAnalyzing(true);
+        setUploadError("");
+        setScanned(false);
+
+        try {
+            const formData = new FormData();
+            formData.append("resume", file);
+            formData.append("jobDescription", jobDescription);
+
+            const response = await API.post(
+                "/ai/ats-upload",
+                formData
+            );
+
+            const extractedText = response.data.resumeText;
+
+            setAiAnalysis(response.data.analysis);
+
+            if (!extractedText || !extractedText.trim()) {
+                throw new Error("No readable text found in resume.");
+            }
+
+            setResumeText(extractedText);
+            setScanned(true);
+
+        } catch (error) {
+            console.error("ATS Upload Error:", error);
+
+            setUploadError(
+                error.response?.data?.message ||
+                error.message ||
+                "Failed to analyze resume. Please try again."
+            );
+
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
-    const score = scanned && resumeText.trim() ? localAudit.score : null;
-    const hasRealTextAudit = scanned && Boolean(resumeText.trim());
+
+    const score = scanned && aiAudit ? aiAudit.score : null;
+    const hasRealTextAudit = scanned && Boolean(resumeText.trim()) && Boolean(aiAudit);
 
     return (
         <main className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
@@ -99,7 +206,7 @@ function ATSChecker() {
                                 <div>
                                     <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Step 01</p>
                                     <h2 className="mt-1 text-xl font-bold">Upload your resume</h2>
-                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">PDF, DOCX, DOC or TXT · any resume accepted</p>
+                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">PDF, DOCX or TXT · any resume accepted</p>
                                 </div>
                                 <div className="rounded-xl bg-indigo-50 p-3 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-300"><FileCheck2 size={20} /></div>
                             </div>
@@ -118,7 +225,7 @@ function ATSChecker() {
                                 <button onClick={() => inputRef.current?.click()} className="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-indigo-600/20 transition hover:-translate-y-0.5 hover:bg-indigo-700">
                                     <FileText size={15} /> Choose Resume
                                 </button>
-                                <input ref={inputRef} type="file" accept=".pdf,.doc,.docx,.txt,.md" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
+                                <input ref={inputRef} type="file" accept=".pdf,.docx,.txt" className="hidden" onChange={(event) => handleFile(event.target.files?.[0])} />
                             </div>
 
                             {file && (
@@ -136,6 +243,13 @@ function ATSChecker() {
                                 </div>
                             )}
 
+                            {uploadError && (
+                                <div className="mt-4 flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/20 dark:text-rose-300">
+                                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                                    <p className="text-xs leading-5">{uploadError}</p>
+                                </div>
+                            )}
+
                             <div className="mt-6 flex items-center gap-2 text-[10px] text-slate-500 dark:text-slate-400"><Lock size={12} /> Your file is used only for this check in the current frontend build.</div>
                         </div>
 
@@ -143,11 +257,24 @@ function ATSChecker() {
                             <div className="flex items-start justify-between gap-4">
                                 <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-400">Step 02 · Optional</p><h2 className="mt-1 text-xl font-bold">Add the target job</h2><p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Unlock role-specific keyword analysis</p></div>
                                 <div className="rounded-xl bg-violet-50 p-3 text-violet-600 dark:bg-violet-950/40 dark:text-violet-300"><Target size={20} /></div>
-                            </div> 
+                            </div>
                             <textarea value={jobDescription} onChange={(event) => { setJobDescription(event.target.value); setScanned(false); }} rows={12} placeholder="Paste the job description here…\n\nExample: React, TypeScript, Node.js, REST APIs, AWS, testing, CI/CD" className="mt-6 w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs leading-6 outline-none transition placeholder:text-slate-400 focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950/50 dark:text-white" />
                             <div className="mt-4 flex items-start gap-2 text-[10px] leading-5 text-slate-500 dark:text-slate-400"><Search size={13} className="mt-0.5 shrink-0 text-indigo-500" /> Without a JD, ResuMind can audit general ATS compatibility. With a JD, it can evaluate keyword and requirement alignment.</div>
-                            <button onClick={runAudit} disabled={!file && !resumeText.trim()} className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-xs font-bold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-slate-950 dark:hover:bg-indigo-400">
-                                Analyze Resume <ArrowRight size={15} />
+                            <button
+                                onClick={runAudit}
+                                disabled={!file || isAnalyzing}
+                                className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-xs font-bold text-white transition hover:bg-indigo-600 disabled:cursor-not-allowed disabled:opacity-40 dark:bg-white dark:text-slate-950 dark:hover:bg-indigo-400"
+                            >
+                                {isAnalyzing ? (
+                                    <>
+                                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                        Extracting & Analyzing...
+                                    </>
+                                ) : (
+                                    <>
+                                        Analyze Resume <ArrowRight size={15} />
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -156,12 +283,12 @@ function ATSChecker() {
 
             {scanned && (
                 <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-                    {hasRealTextAudit ? <AuditResults audit={localAudit} hasJD={Boolean(jobDescription.trim())} showDetails={showDetails} setShowDetails={setShowDetails} /> : <PendingEngine file={file} />}
+                    {hasRealTextAudit ? <AuditResults audit={aiAudit} hasJD={Boolean(jobDescription.trim())} showDetails={showDetails} setShowDetails={setShowDetails} /> : <PendingEngine file={file} />}
                 </section>
             )}
 
             {!scanned && <TrustStrip />}
-        </main> 
+        </main>
     );
 }
 
