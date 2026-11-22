@@ -94,16 +94,24 @@ A collection of AI-powered tools designed to improve resume quality.
 ## 📸 Application Screenshots
 
 ### 🏠 Home Page
-![ResuMind Home Page](screenshots/home.png)
+<p align="center">
+  <img src="screenshots/home.png" alt="ResuMind Home Page" width="100%" />
+</p>
 
 ### 🤖 AI Tools
-![ResuMind AI Tools](screenshots/ai-tools.png)
+<p align="center">
+  <img src="screenshots/ai-tools.png" alt="ResuMind AI Tools" width="100%" />
+</p>
 
 ### 📊 ATS Checker
-![ResuMind ATS Checker](screenshots/ats-checker.png)
+<p align="center">
+  <img src="screenshots/ats-checker.png" alt="ResuMind ATS Checker" width="100%" />
+</p>
 
 ### 💻 Dashboard
-![ResuMind Dashboard](screenshots/dashboard.png)
+<p align="center">
+  <img src="screenshots/dashboard.png" alt="ResuMind Dashboard" width="100%" />
+</p>
 
 ---
 
