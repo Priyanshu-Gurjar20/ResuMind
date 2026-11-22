@@ -10,6 +10,8 @@ import {
     Target,
     WandSparkles,
     Zap,
+    Code2,
+    Mail,
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 
@@ -162,11 +164,10 @@ function LandingV2() {
                                             ].map((item, index) => (
                                                 <div
                                                     key={item}
-                                                    className={`rounded-lg px-3 py-2.5 text-xs font-medium ${
-                                                        index === 1
-                                                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
-                                                            : "text-slate-500 dark:text-slate-400"
-                                                    }`}
+                                                    className={`rounded-lg px-3 py-2.5 text-xs font-medium ${index === 1
+                                                        ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                                        : "text-slate-500 dark:text-slate-400"
+                                                        }`}
                                                 >
                                                     {item}
                                                 </div>
@@ -634,6 +635,68 @@ function LandingV2() {
                     </Link>
                 </div>
             </section>
+
+            {/* ================= FOOTER ================= */}
+            <footer className="border-t border-slate-200 bg-slate-50 px-4 py-10 dark:border-slate-800 dark:bg-slate-900 sm:px-6">
+                <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+
+                    <div className="text-center sm:text-left">
+                        <h3 className="text-lg font-bold tracking-tight">
+                            ResuMind
+                        </h3>
+
+                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                            Built with purpose. Powered by innovation.
+                        </p>
+
+                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
+                            Designed & Developed by{" "}
+                            <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                                Priyanshu Panwar
+                            </span>
+                        </p>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <a
+                            href="https://www.linkedin.com/in/priyanshu-panwar-aab11728b"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="LinkedIn Profile"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-indigo-800 dark:hover:bg-indigo-950 dark:hover:text-indigo-400"
+                        >
+                            <span className="text-base font-bold">in</span>
+                        </a>
+
+                        <a
+                            href="mailto:priyanshupanwar0020@gmail.com"
+                            aria-label="Send Email"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-indigo-800 dark:hover:bg-indigo-950 dark:hover:text-indigo-400"
+                        >
+                            <Mail size={18} />
+                        </a>
+
+                        <a
+                            href="https://github.com/Priyanshu-Gurjar20/ResuMind"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="GitHub Repository"
+                            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-indigo-800 dark:hover:bg-indigo-950 dark:hover:text-indigo-400"
+                        >
+                            <Code2 size={18} />
+                        </a>
+                    </div>
+                </div>
+
+                <div className="mx-auto mt-8 max-w-6xl border-t border-slate-200 pt-5 text-center dark:border-slate-800">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                        © {new Date().getFullYear()} ResuMind. All rights reserved.
+                    </p>
+                </div>
+            </footer>
+
+
+
         </main>
     );
 }
@@ -721,11 +784,10 @@ function PageCard({ pages, label, highlight = false }) {
     return (
         <div className="text-center">
             <div
-                className={`mx-auto flex h-40 w-28 items-center justify-center rounded-lg border-2 shadow-sm sm:h-48 sm:w-32 ${
-                    highlight
-                        ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
-                        : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900"
-                }`}
+                className={`mx-auto flex h-40 w-28 items-center justify-center rounded-lg border-2 shadow-sm sm:h-48 sm:w-32 ${highlight
+                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/40"
+                    : "border-slate-200 bg-slate-50 dark:border-slate-700 dark:bg-slate-900"
+                    }`}
             >
                 <div className="text-center">
                     <p className="text-3xl font-bold">
@@ -739,11 +801,10 @@ function PageCard({ pages, label, highlight = false }) {
             </div>
 
             <p
-                className={`mt-3 text-xs font-semibold ${
-                    highlight
-                        ? "text-indigo-600 dark:text-indigo-400"
-                        : "text-slate-500 dark:text-slate-400"
-                }`}
+                className={`mt-3 text-xs font-semibold ${highlight
+                    ? "text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-500 dark:text-slate-400"
+                    }`}
             >
                 {label}
             </p>
@@ -777,11 +838,10 @@ function TemplateCard({
     return (
         <Link
             to={`/builder?template=${templateId}`}
-            className={`group block overflow-hidden rounded-2xl border bg-slate-50 p-3 transition duration-300 hover:-translate-y-1 hover:shadow-2xl dark:bg-slate-900 ${
-                featured
-                    ? "border-indigo-300 dark:border-indigo-800"
-                    : "border-slate-200 dark:border-slate-800"
-            }`}
+            className={`group block overflow-hidden rounded-2xl border bg-slate-50 p-3 transition duration-300 hover:-translate-y-1 hover:shadow-2xl dark:bg-slate-900 ${featured
+                ? "border-indigo-300 dark:border-indigo-800"
+                : "border-slate-200 dark:border-slate-800"
+                }`}
         >
             {/* Template Preview */}
             <div className="relative flex h-72 items-center justify-center overflow-hidden rounded-xl bg-slate-200 p-5 dark:bg-slate-950">
